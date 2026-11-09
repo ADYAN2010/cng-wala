@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>CNG WALA — DHANMONDI SHIFT | Bangladeshi CNG Driving Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Rajdhani:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- 1. Reliable Startup Splash Shell -->
+      <div id="cng-startup-splash" class="startup-splash-overlay">
+        <div class="startup-shell-box">
+          <div class="startup-icon-wrapper">
+            <span class="startup-cng-icon">🛺</span>
+          </div>
+          <div class="title-badge">DHAKA OPEN-WORLD SIMULATOR</div>
+          <h1 class="startup-main-title">CNG WALA</h1>
+          <h2 class="startup-sub-title">Dhanmondi Shift — ধানমন্ডি শিফট</h2>
+
+          <div class="startup-progress-track">
+            <div id="startup-progress-bar" class="startup-progress-bar" style="width: 15%"></div>
+          </div>
+          <p id="startup-progress-text" class="startup-step-text">গেম সিস্টেম ও গ্রাফিক্স লোড হচ্ছে... (Initializing)</p>
+        </div>
+      </div>
+
+      <!-- 2. WebGL / Critical Startup Error Screen with Retry -->
+      <div id="cng-startup-error" class="startup-splash-overlay hidden">
+        <div class="startup-shell-box error-box">
+          <div class="error-icon-wrapper">
+            <span>⚠️</span>
+          </div>
+          <h2 id="error-title" class="error-heading">স্টার্টআপ সমস্যা (Startup Error)</h2>
+          <p id="error-summary" class="error-lead">আপনার ব্রাউজারে WebGL সক্রিয় করা নেই।</p>
+          <div id="error-details" class="error-detail-text">
+            দয়া করে ব্রাউজার সেটিংসে গিয়ে হার্ডওয়্যার অ্যাক্সিলারেশন (Hardware Acceleration) চালু করুন এবং ব্রাউজার রিস্টার্ট করুন।
+          </div>
+          <button id="btn-retry-startup" class="menu-btn primary-btn retry-btn">🔄 আবার চেষ্টা করুন (Retry Startup)</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
