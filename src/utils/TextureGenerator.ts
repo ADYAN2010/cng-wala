@@ -21,7 +21,7 @@ export class TextureGenerator {
     }
   }
 
-  // Create an illustrated golden-yellow main road texture or grey sub-road texture
+  // Create realistic dark asphalt road texture with authentic road markings
   public static createRoadTexture(
     type: 'main' | 'sub' | 'bridge' = 'main',
     hasZebra: boolean = false,
@@ -38,41 +38,47 @@ export class TextureGenerator {
     const ctx = canvas.getContext('2d')!;
 
     if (type === 'main') {
-      // Golden-Yellow Main Road from the Illustrated Reference Map (#e5aa26 / #f1c40f)
-      ctx.fillStyle = '#f5c518';
+      // 1. Realistic Dark Asphalt Base (#22272b)
+      ctx.fillStyle = '#22272b';
       ctx.fillRect(0, 0, width, height);
 
-      // Subtle textured road noise
-      for (let i = 0; i < 2000; i++) {
+      // Asphalt texture aggregate noise & weathering
+      for (let i = 0; i < 4000; i++) {
         const x = Math.random() * width;
         const y = Math.random() * height;
         const s = Math.random() * 2 + 1;
-        ctx.fillStyle = Math.random() > 0.5 ? '#e0b010' : '#fad430';
+        ctx.fillStyle = Math.random() > 0.5 ? '#1a1d20' : '#2b3035';
         ctx.fillRect(x, y, s, s);
       }
 
-      // Outer solid white edges
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(10, 0, 10, height);
-      ctx.fillRect(width - 20, 0, 10, height);
+      // Outer solid white lane boundary lines
+      ctx.fillStyle = '#f5f6fa';
+      ctx.fillRect(14, 0, 8, height);
+      ctx.fillRect(width - 22, 0, 8, height);
 
-      // Center dividing dashed white lines
-      ctx.fillStyle = '#ffffff';
-      const dashH = 52;
-      const gapH = 34;
+      // Inner lane divider dashed white lines (Left lane & Right lane)
+      ctx.fillStyle = 'rgba(245, 246, 250, 0.7)';
+      const dashH = 48;
+      const gapH = 32;
       for (let y = 0; y < height; y += dashH + gapH) {
-        ctx.fillRect(width / 2 - 5, y, 10, dashH);
+        ctx.fillRect(width * 0.28 - 2, y, 4, dashH);
+        ctx.fillRect(width * 0.72 - 2, y, 4, dashH);
       }
 
+      // Center double yellow divider line (ঢাকা ট্রাফিক রোড পেইন্ট)
+      ctx.fillStyle = '#fbc531';
+      ctx.fillRect(width / 2 - 8, 0, 5, height);
+      ctx.fillRect(width / 2 + 3, 0, 5, height);
+
     } else if (type === 'bridge') {
-      // Arched Lake Bridge terracotta / wood planks
-      ctx.fillStyle = '#b33927';
+      // Arched Lake Bridge terracotta brick roadway with expansion joints
+      ctx.fillStyle = '#7a3124';
       ctx.fillRect(0, 0, width, height);
 
-      // Plank lines
-      ctx.strokeStyle = '#6e2115';
-      ctx.lineWidth = 4;
-      for (let y = 0; y < height; y += 32) {
+      // Brick plank lines
+      ctx.strokeStyle = '#532017';
+      ctx.lineWidth = 3;
+      for (let y = 0; y < height; y += 24) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(width, y);
@@ -81,25 +87,33 @@ export class TextureGenerator {
 
       // White pedestrian borders
       ctx.fillStyle = '#ecf0f1';
-      ctx.fillRect(8, 0, 8, height);
-      ctx.fillRect(width - 16, 0, 8, height);
+      ctx.fillRect(10, 0, 8, height);
+      ctx.fillRect(width - 18, 0, 8, height);
 
     } else {
-      // Illustrated Dark Grey Residential Sub-Road (#2f3542)
-      ctx.fillStyle = '#2f3542';
+      // Residential Sub-Road: Clean Dark Asphalt (#282d32)
+      ctx.fillStyle = '#282d32';
       ctx.fillRect(0, 0, width, height);
 
+      // Subtle aggregate flecks
+      for (let i = 0; i < 2500; i++) {
+        const x = Math.random() * width;
+        const y = Math.random() * height;
+        ctx.fillStyle = Math.random() > 0.5 ? '#202428' : '#32373d';
+        ctx.fillRect(x, y, 1.5, 1.5);
+      }
+
       // Outer white lane borders
-      ctx.fillStyle = '#dfe4ea';
-      ctx.fillRect(8, 0, 8, height);
-      ctx.fillRect(width - 16, 0, 8, height);
+      ctx.fillStyle = '#dcdde1';
+      ctx.fillRect(10, 0, 6, height);
+      ctx.fillRect(width - 16, 0, 6, height);
 
       if (hasSpeedBump) {
-        // Yellow/Black Speed Breaker Stripes (স্পিড ব্রেকার)
+        // Yellow/Black Speed Breaker Warning Stripes (স্পিড ব্রেকার)
         const stripeW = 28;
-        ctx.fillStyle = '#f1c40f';
+        ctx.fillStyle = '#fbc531';
         ctx.fillRect(20, height * 0.4, width - 40, height * 0.2);
-        ctx.fillStyle = '#111';
+        ctx.fillStyle = '#1e272e';
         for (let x = 20; x < width - 40; x += stripeW * 2) {
           ctx.beginPath();
           ctx.moveTo(x, height * 0.4);
@@ -110,17 +124,17 @@ export class TextureGenerator {
         }
       } else if (hasZebra) {
         // White zebra pedestrian crossing
-        ctx.fillStyle = '#f1f2f6';
-        const stripeH = 36;
-        const gap = 24;
-        for (let y = 30; y < height - 30; y += stripeH + gap) {
-          ctx.fillRect(30, y, width - 60, stripeH);
+        ctx.fillStyle = '#f5f6fa';
+        const stripeH = 34;
+        const gap = 22;
+        for (let y = 24; y < height - 24; y += stripeH + gap) {
+          ctx.fillRect(24, y, width - 48, stripeH);
         }
       } else {
-        // Subtle center broken white line
-        ctx.fillStyle = '#f1f2f6';
-        const dashH = 44;
-        const gapH = 36;
+        // Center single dashed white line
+        ctx.fillStyle = '#f5f6fa';
+        const dashH = 46;
+        const gapH = 34;
         for (let y = 0; y < height; y += dashH + gapH) {
           ctx.fillRect(width / 2 - 3, y, 6, dashH);
         }

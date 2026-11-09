@@ -142,21 +142,32 @@ export class WorldManager {
   // Lightweight immediate garage scene for the starting menu
   private buildLightweightMenuBackdrop(): void {
     const previewGround = new THREE.Mesh(
-      new THREE.PlaneGeometry(120, 120),
+      new THREE.PlaneGeometry(160, 160),
       this.grassMat
     );
     previewGround.rotateX(-Math.PI / 2);
-    previewGround.position.set(-85, -0.05, 160);
+    previewGround.position.set(-160, -0.05, 180);
     previewGround.receiveShadow = true;
     previewGround.name = 'menu_preview_ground';
     this.scene.add(previewGround);
 
+    // Realistic asphalt roadway preview
+    const roadPreview = new THREE.Mesh(
+      new THREE.PlaneGeometry(15, 60),
+      this.roadMainMat
+    );
+    roadPreview.rotateX(-Math.PI / 2);
+    roadPreview.position.set(-160, 0.02, 180);
+    roadPreview.receiveShadow = true;
+    roadPreview.name = 'menu_preview_road';
+    this.scene.add(roadPreview);
+
     // Stand curb pad
     const standPad = new THREE.Mesh(
-      new THREE.BoxGeometry(24, 0.2, 30),
+      new THREE.BoxGeometry(4, 0.22, 60),
       this.sidewalkMat
     );
-    standPad.position.set(-85, 0.08, 160);
+    standPad.position.set(-170, 0.11, 180);
     standPad.receiveShadow = true;
     standPad.name = 'menu_preview_pad';
     this.scene.add(standPad);
@@ -170,9 +181,11 @@ export class WorldManager {
       if (onProgress) onProgress(pct, msg);
     };
 
-    // Remove menu preview ground
+    // Remove menu preview meshes
     const prevGround = this.scene.getObjectByName('menu_preview_ground');
     if (prevGround) this.scene.remove(prevGround);
+    const prevRoad = this.scene.getObjectByName('menu_preview_road');
+    if (prevRoad) this.scene.remove(prevRoad);
     const prevPad = this.scene.getObjectByName('menu_preview_pad');
     if (prevPad) this.scene.remove(prevPad);
 
@@ -271,8 +284,9 @@ export class WorldManager {
     this.scene.add(pWest, pEast);
   }
 
-  // 2. Red Dashed Area Boundary Line
+  // 2. Red Dashed Area Boundary Line (Developer Debug Only)
   private buildDhanmondiBoundaryMarker(): void {
+    if (!GraphicsManager.getInstance().settings.showDevOverlay) return;
     const b = DhanmondiMap.BOUNDS;
     const boundaryPoints = [
       new THREE.Vector3(b.minX, 0.25, b.minZ),
@@ -336,15 +350,26 @@ export class WorldManager {
       swRight.receiveShadow = true;
       this.scene.add(swRight);
 
-      // Central median on main arteries
+      // Central median on main arteries (Concrete curb with planted green hedge)
       if (road.isMainArtery && road.width >= 14) {
-        const medianW = 1.6;
-        const medianH = 0.35;
+        const medianW = 1.4;
+        const medianH = 0.26;
         const medianGeo = new THREE.BoxGeometry(medianW, medianH, length);
         medianGeo.rotateY(angle);
-        const median = new THREE.Mesh(medianGeo, this.parkGrassMat);
-        median.position.set(midX, medianH / 2, midZ);
-        this.scene.add(median);
+        const curbMat = new THREE.MeshStandardMaterial({ color: 0x576574, roughness: 0.8 });
+        const medianCurb = new THREE.Mesh(medianGeo, curbMat);
+        medianCurb.position.set(midX, medianH / 2, midZ);
+        medianCurb.receiveShadow = true;
+
+        // Dark green hedge top
+        const hedgeGeo = new THREE.BoxGeometry(medianW - 0.25, 0.22, length);
+        hedgeGeo.rotateY(angle);
+        const hedgeMat = new THREE.MeshStandardMaterial({ color: 0x1e824c, roughness: 0.95 });
+        const hedge = new THREE.Mesh(hedgeGeo, hedgeMat);
+        hedge.position.set(midX, medianH + 0.11, midZ);
+        hedge.receiveShadow = true;
+
+        this.scene.add(medianCurb, hedge);
       }
     }
 
@@ -548,11 +573,32 @@ export class WorldManager {
   }
 
   private createChunkBuilding(x: number, z: number, w: number, d: number, h: number, mat: THREE.MeshStandardMaterial): void {
+    const buildingGroup = new THREE.Group();
+    buildingGroup.position.set(x, 0, z);
+
+    // Realistic 6-sided texturing: Facade windows on walls, concrete on roof
+    const roofMat = new THREE.MeshStandardMaterial({ color: 0x8395a7, roughness: 0.85 });
+    const materials = [mat, mat, roofMat, roofMat, mat, mat];
+
     const bGeo = new THREE.BoxGeometry(w, h, d);
-    const bMesh = new THREE.Mesh(bGeo, mat);
-    bMesh.position.set(x, h / 2, z);
+    const bMesh = new THREE.Mesh(bGeo, materials);
+    bMesh.position.y = h / 2;
     bMesh.castShadow = true;
     bMesh.receiveShadow = true;
+    buildingGroup.add(bMesh);
+
+    // Rooftop water tank (Sintex blue plastic tank common on Dhaka rooftops)
+    const tankGeo = new THREE.CylinderGeometry(0.85, 0.85, 1.4, 8);
+    const tankMat = new THREE.MeshStandardMaterial({ color: 0x2980b9, roughness: 0.5 });
+    const tank = new THREE.Mesh(tankGeo, tankMat);
+    tank.position.set(w * 0.22, h + 0.7, d * 0.22);
+    buildingGroup.add(tank);
+
+    // Rooftop stairwell headhouse / lift room
+    const stairGeo = new THREE.BoxGeometry(Math.min(w * 0.35, 4.0), 2.2, Math.min(d * 0.35, 4.0));
+    const stairMesh = new THREE.Mesh(stairGeo, roofMat);
+    stairMesh.position.set(-w * 0.18, h + 1.1, -d * 0.18);
+    buildingGroup.add(stairMesh);
 
     const col: CollisionBox = {
       minX: x - w / 2,
@@ -561,7 +607,7 @@ export class WorldManager {
       maxZ: z + d / 2
     };
 
-    this.assignToChunk(x, z, bMesh, col);
+    this.assignToChunk(x, z, buildingGroup, col);
   }
 
   // 6. Abahani Club Stadium
@@ -643,21 +689,100 @@ export class WorldManager {
     this.assignToChunk(x, z, sign);
   }
 
-  // 9. Instanced Trees & Streetlife
+  // 9. Instanced Trees, Streetlights & Dhaka Streetlife
   private buildStreetLifeAndFoliage(): void {
+    // Roadside Tong stalls and street vendors
     this.createTongDokan(-148, -112);
     this.createTongDokan(-148, 72);
+    this.createTongDokan(-148, 175);
     this.createTongDokan(-148, 230);
     this.createStreetVendorCart(-148, -118, 'fruit');
     this.createStreetVendorCart(-148, 64, 'fuchka');
+    this.createStreetVendorCart(-148, 182, 'fruit');
 
     this.createSpeedBreaker(-105, -160, 9);
     this.createSpeedBreaker(-105, -60, 9);
     this.createSpeedBreaker(95, -70, 9);
     this.createSpeedBreaker(95, 70, 9);
 
-    // Build Instanced Trees along Lakeside Promenades & Medians
+    // Streetlights along main avenues
+    this.buildStreetlightsAndUtilityPoles();
+
+    // Build Instanced Trees along Lakeside Promenades & Sidewalks
     this.buildInstancedFoliage();
+  }
+
+  // Streetlights & Concrete Electrical Poles with Overhead Crossarms
+  private buildStreetlightsAndUtilityPoles(): void {
+    const poleMat = new THREE.MeshStandardMaterial({ color: 0x3d4449, roughness: 0.6, metalness: 0.4 });
+    const lampEmissiveMat = new THREE.MeshStandardMaterial({
+      color: 0xfffa65,
+      emissive: 0xffeaa7,
+      emissiveIntensity: 1.5
+    });
+    const utilityMat = new THREE.MeshStandardMaterial({ color: 0x7f8c8d, roughness: 0.85 });
+
+    const poleGeo = new THREE.CylinderGeometry(0.09, 0.12, 6.2, 8);
+    const armGeo = new THREE.BoxGeometry(1.6, 0.08, 0.08);
+    const headGeo = new THREE.BoxGeometry(0.45, 0.18, 0.3);
+
+    // Streetlights along Satmasjid Road (West side x = -170.2, East side x = -149.8)
+    for (let z = -250; z <= 235; z += 34) {
+      // West Streetlight (arm points towards road, +X)
+      const westLight = new THREE.Group();
+      const pWest = new THREE.Mesh(poleGeo, poleMat);
+      pWest.position.y = 3.1;
+      const aWest = new THREE.Mesh(armGeo, poleMat);
+      aWest.position.set(0.8, 6.0, 0);
+      const hWest = new THREE.Mesh(headGeo, lampEmissiveMat);
+      hWest.position.set(1.5, 5.9, 0);
+      westLight.add(pWest, aWest, hWest);
+      westLight.position.set(-170.2, 0, z);
+      this.assignToChunk(-170.2, z, westLight);
+
+      // East Streetlight (arm points towards road, -X)
+      const eastLight = new THREE.Group();
+      const pEast = new THREE.Mesh(poleGeo, poleMat);
+      pEast.position.y = 3.1;
+      const aEast = new THREE.Mesh(armGeo, poleMat);
+      aEast.position.set(-0.8, 6.0, 0);
+      const hEast = new THREE.Mesh(headGeo, lampEmissiveMat);
+      hEast.position.set(-1.5, 5.9, 0);
+      eastLight.add(pEast, aEast, hEast);
+      eastLight.position.set(-149.8, 0, z);
+      this.assignToChunk(-149.8, z, eastLight);
+    }
+
+    // Streetlights along Mirpur Road
+    for (let z = -250; z <= 235; z += 36) {
+      const westLight = new THREE.Group();
+      const pWest = new THREE.Mesh(poleGeo, poleMat);
+      pWest.position.y = 3.1;
+      const aWest = new THREE.Mesh(armGeo, poleMat);
+      aWest.position.set(0.8, 6.0, 0);
+      const hWest = new THREE.Mesh(headGeo, lampEmissiveMat);
+      hWest.position.set(1.5, 5.9, 0);
+      westLight.add(pWest, aWest, hWest);
+      westLight.position.set(149.8, 0, z);
+      this.assignToChunk(149.8, z, westLight);
+    }
+
+    // Concrete Electrical Utility Poles along Satmasjid Road
+    const utilPoleGeo = new THREE.CylinderGeometry(0.14, 0.18, 7.5, 8);
+    const crossArmGeo = new THREE.BoxGeometry(1.8, 0.12, 0.12);
+
+    for (let z = -240; z <= 220; z += 44) {
+      const utilGroup = new THREE.Group();
+      const uPole = new THREE.Mesh(utilPoleGeo, utilityMat);
+      uPole.position.y = 3.75;
+      const cross1 = new THREE.Mesh(crossArmGeo, utilityMat);
+      cross1.position.set(0, 6.8, 0);
+      const cross2 = new THREE.Mesh(crossArmGeo, utilityMat);
+      cross2.position.set(0, 6.2, 0);
+      utilGroup.add(uPole, cross1, cross2);
+      utilGroup.position.set(-171.8, 0, z);
+      this.assignToChunk(-171.8, z, utilGroup);
+    }
   }
 
   private buildInstancedFoliage(): void {
@@ -669,9 +794,21 @@ export class WorldManager {
       treePositions.push({ x: 48, z, type: z % 3 === 0 ? 'palm' : 'krishnachura' });
     }
 
-    // Along Satmasjid median
-    for (let z = -240; z <= 220; z += 35) {
+    // Along Satmasjid Road sidewalks
+    for (let z = -240; z <= 230; z += 28) {
+      treePositions.push({ x: -171.2, z, type: z % 56 === 0 ? 'krishnachura' : 'banyan' });
+      treePositions.push({ x: -148.8, z, type: z % 56 === 0 ? 'palm' : 'krishnachura' });
+    }
+
+    // Along Satmasjid central green median
+    for (let z = -240; z <= 220; z += 40) {
       treePositions.push({ x: -160, z, type: 'palm' });
+    }
+
+    // Along Mirpur Road sidewalks
+    for (let z = -240; z <= 230; z += 32) {
+      treePositions.push({ x: 148.8, z, type: 'krishnachura' });
+      treePositions.push({ x: 171.2, z, type: 'palm' });
     }
 
     // Around Sarobar

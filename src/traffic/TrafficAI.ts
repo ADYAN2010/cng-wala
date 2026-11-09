@@ -37,7 +37,9 @@ export class TrafficAI {
     this.clearTraffic();
     this.currentDensity = density;
 
-    const mainRoads = DhanmondiMap.ROADS.filter(r => r.isMainArtery);
+    // Exclude player spawn segment so traffic doesn't spawn on top of player CNG
+    const spawnRoadId = 'satmasjid_sec5';
+    const mainRoads = DhanmondiMap.ROADS.filter(r => r.isMainArtery && r.id !== spawnRoadId);
     const subRoads = DhanmondiMap.ROADS.filter(r => !r.isMainArtery);
     let id = 0;
 

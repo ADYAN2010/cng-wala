@@ -18,10 +18,15 @@ body, html {
   color: #f1f2f6;
 }
 
-canvas {
+#cng-3d-canvas {
   display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
+  z-index: 0;
+  outline: none;
 }
 
 .hidden {
@@ -129,12 +134,21 @@ canvas {
 }
 
 .minimap-container {
+  width: 220px;
+  height: 220px;
   position: relative;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   border: 2px solid rgba(0, 230, 118, 0.4);
   background: #111;
+}
+
+#hud-minimap {
+  width: 220px !important;
+  height: 220px !important;
+  display: block;
+  border-radius: 10px;
 }
 
 .minimap-compass {
@@ -1206,7 +1220,7 @@ canvas {
   gap: 10px;
 }
 
-.stat-card {
+.stats-overview-grid .stat-card {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1216,21 +1230,21 @@ canvas {
   padding: 10px 12px;
 }
 
-.stat-icon {
+.stats-overview-grid .stat-icon {
   font-size: 1.5rem;
 }
 
-.stat-info {
+.stats-overview-grid .stat-info {
   display: flex;
   flex-direction: column;
 }
 
-.stat-label {
+.stats-overview-grid .stat-label {
   font-size: 0.75rem;
   color: #a4b0be;
 }
 
-.stat-val {
+.stats-overview-grid .stat-val {
   font-size: 1.05rem;
   font-weight: 800;
   color: #00e676;

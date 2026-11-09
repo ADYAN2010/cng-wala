@@ -50,13 +50,15 @@ export class GameEngine {
     });
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
+    this.renderer.domElement.id = 'cng-3d-canvas';
     document.body.appendChild(this.renderer.domElement);
 
     this.graphicsManager.setRenderer(this.renderer);
 
     // 2. Setup Scene & Camera
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2(0x87ceeb, 0.0035);
+    this.scene.background = new THREE.Color(0x87ceeb);
+    this.scene.fog = new THREE.FogExp2(0x87ceeb, 0.0022);
 
     this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.2, 600);
 
@@ -66,8 +68,8 @@ export class GameEngine {
     this.scene.add(this.cngVehicle.root);
 
     this.vehicleController = new VehicleController(this.cngVehicle);
-    // Initial spawn at Dhanmondi CNG Garage / Stand (x = -110, z = 220)
-    this.vehicleController.setPosition(-110, 0, 220, 0);
+    // Initial spawn in Satmasjid Road driving lane (x = -164.2, z = 180)
+    this.vehicleController.setPosition(-164.2, 0, 180, 0);
 
     this.cameraController = new CameraController(this.camera, this.vehicleController);
     this.trafficAI = new TrafficAI(this.scene, false, this.graphicsManager.settings.trafficDensity);
@@ -133,8 +135,9 @@ export class GameEngine {
     // Restart shift
     this.menuManager.onRestartShift = () => {
       this.economyManager.resetShift();
-      this.vehicleController.setPosition(-110, 0, 220, 0);
-      this.hud.showToast('New Shift Started at Dhanmondi Stand (নতুন শিফট শুরু)', 2500);
+      this.vehicleController.setPosition(-164.2, 0, 180, 0);
+      this.cameraController.snapToTarget();
+      this.hud.showToast('New Shift Started on Satmasjid Road (সাত মসজিদ রোডে নতুন শিফট শুরু)', 2500);
     };
 
     // Weather toggle
@@ -176,8 +179,9 @@ export class GameEngine {
       this.passengerManager.initPassengers(this.graphicsManager.settings.pedestrianDensity);
       this.weatherManager.applyGraphicsProfile(this.graphicsManager.settings);
 
-      // Place CNG at Stand ready to roll
-      this.vehicleController.setPosition(-110, 0, 220, 0);
+      // Place CNG on Satmasjid Road driving lane facing southbound traffic
+      this.vehicleController.setPosition(-164.2, 0, 180, 0);
+      this.cameraController.snapToTarget();
 
       // Smooth fade out of loading screen
       if (this.worldLoadingOverlayEl) {
@@ -348,8 +352,8 @@ export class GameEngine {
     if (!this.menuManager.isGameStarted || this.isWorldTransitioning) {
       const t = now * 0.00035;
       const radius = 5.2;
-      this.camera.position.set(-110 + Math.sin(t) * radius, 2.0 + Math.cos(t * 0.5) * 0.4, 220 + Math.cos(t) * radius);
-      this.camera.lookAt(-110, 1.05, 220);
+      this.camera.position.set(-164.2 + Math.sin(t) * radius, 2.0 + Math.cos(t * 0.5) * 0.4, 180 + Math.cos(t) * radius);
+      this.camera.lookAt(-164.2, 1.05, 180);
 
       this.renderer.render(this.scene, this.camera);
       return;

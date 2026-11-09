@@ -35,6 +35,28 @@ export class CameraController {
     this.mode = mode;
   }
 
+  // Instantly snaps camera directly behind vehicle (prevents camera drift on spawn/teleport)
+  public snapToTarget(): void {
+    const cngPos = this.target.position;
+    const cngRotY = this.target.rotationY;
+    const dist = 5.6;
+    const height = 2.4;
+    const idealX = cngPos.x - Math.sin(cngRotY) * dist;
+    const idealZ = cngPos.z - Math.cos(cngRotY) * dist;
+    const idealY = Math.max(cngPos.y + height, 1.6);
+    this.currentCameraPos.set(idealX, idealY, idealZ);
+    this.camera.position.copy(this.currentCameraPos);
+
+    const lookAhead = 4.0;
+    this.currentLookAt.set(
+      cngPos.x + Math.sin(cngRotY) * lookAhead,
+      cngPos.y + 1.2,
+      cngPos.z + Math.cos(cngRotY) * lookAhead
+    );
+    this.camera.lookAt(this.currentLookAt);
+    this.camera.updateProjectionMatrix();
+  }
+
   public update(delta: number): void {
     const cngPos = this.target.position;
     const cngRotY = this.target.rotationY;
